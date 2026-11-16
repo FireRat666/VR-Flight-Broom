@@ -61,7 +61,8 @@
   // The app caches kit bundles by URL, so bump this whenever the bundles are rebuilt.
   const BUNDLE_VERSION = '8';
   const SET_ID = 'broom-flight-set';
-  // Your user state: the shared broom you have out, "key|n" (broom n of spot key), so every page counts it as taken.
+  // Your user state: the shared broom you have out, "key:n" (broom n of spot key), so every page counts it as taken.
+  // Not "|": the app sends user state as name|value, so a "|" in the value cuts it short for everyone else.
   const BROOM_PROP = 'broom-flight-broom';
   const LOG = 'Flight Broom (snippet)';
 
@@ -248,10 +249,10 @@
 
   const publish = () => {
     const m = taken.get(ME);
-    BS.Scene.GetInstance().SetUserProps({ [BROOM_PROP]: m ? `${m.key}|${m.n}` : '' });
+    BS.Scene.GetInstance().SetUserProps({ [BROOM_PROP]: m ? `${m.key}:${m.n}` : '' });
   };
   const readEntry = (value) => {
-    const m = /^([A-Za-z0-9_-]+)\|(\d+)$/.exec(String(value || '').trim());
+    const m = /^([A-Za-z0-9_-]+):(\d+)$/.exec(String(value || '').trim());
     return m ? { key: m[1], n: Number(m[2]) } : null;
   };
   const setTaken = (uid, entry) => {
