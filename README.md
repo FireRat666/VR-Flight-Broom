@@ -24,7 +24,7 @@ To try it, open <https://flight-broom.firer.at> as a space in Altspace.
 
 A broom waits at each Flight Broom spot, with a **Click the broom to ride** label over it. The first time you sit on one, a toast shows the controls for VR or PC.
 
-The broom isn't shared: everyone has it to themselves, and others see you flying but not the broom. After you get off, it goes back to its spot `return-after` seconds later. It stops at walls and floors, sliding along them (`collide`).
+You have one broom out at a time: sitting on a broom sends your other one away. By default everyone has brooms of their own, and others see you flying but not the broom. With `sync="true"` the brooms are shared: everyone sees the same brooms, and sitting on one puts a new one at the spot, up to `sync-limit`. After you get off, it goes back to its spot `return-after` seconds later (a shared one goes away instead). It stops at walls and floors, sliding along them (`collide`).
 
 ## Add it to an Altspace world (snippet)
 
@@ -54,6 +54,8 @@ In a Creator SDK world, add an empty GameObject at the origin, click **Add Compo
   help="true"
   label="true"
   label-text="Click the broom to ride"
+  sync="false"
+  sync-limit="10"
   bundle-base="">
   <bs-gizmo type="position" attribute="position"/>
   <bs-gizmo type="box" attribute="position" size="0.5 0.16 0.5"/>
@@ -93,13 +95,30 @@ All optional. An empty setting uses the default.
 | `label` | `true` | `false` hides the **Click the broom to ride** label over the broom's spot. |
 | `label-text` | `Click the broom to ride` | What the label over the brooms says. No double quotes. |
 | `broom-2-label-text`, `broom-3-label-text`, ... | `label-text` | `label-text` for that broom only. |
+| `sync` | `false` | `true`: the brooms are shared, so everyone sees them. Sitting on one puts a new shared broom at the spot. A shared broom you're done with (`return-after` seconds after you get off, or when you sit on another, or leave) goes away for everyone. |
+| `sync-limit` | `10` | Most shared brooms out in the space at once. Past it, the broom at each spot is a local one (only you see yours), until one goes away. |
 | `bundle-base` | `bundles/` next to the script | Folder URL to load the broom's bundles from instead. |
 
 ## How it works
 
 JavaScript can't fly a player smoothly, but Visual Scripting can. So `snippet.js` loads a small kit for each broom spot: an asset bundle holding the broom and its label, with a Visual Scripting graph that does the flying. The kit is spawned under an object named `broom-<instance>-<n>` (n is the broom's number: 1 for `position`, 2 for `broom-2-position` and so on), which is the broom's key. When a broom spawns, its graph calls `window.broomFlightReady(key)` in the page, and the snippet answers with that placement's settings through `scene.SendToVisualScripting("broom-flight-set", "key|Name=value")`.
 
+With `sync="true"`, each spot's brooms are numbered, and spawned under objects named `key~key-sN`. The graph gives the broom network id `key-sN`, the same on every page, so it's the same broom for everyone. Each player's user state (`broom-flight-broom`, `key|N`) says which broom they have out, and every page works out the same thing from it: the brooms that are out (kept wherever their riders took them), and one waiting at the spot, the lowest number not out. Once `sync-limit` are out, the waiting one is a plain local broom instead. When you sit on a shared broom it takes ownership and calls `window.broomFlightTaken(key, id)`; when you're done with it, `window.broomFlightGone(id)` clears your user state and it goes away on every page. Sitting on a broom also sends `*|` to `broom-flight-drop`, which is done with your other broom. A shared broom that's out can only be sat on by the player who owns it.
+
 On PC, the page also listens for `W`, `A`, `S`, `D`, `Q`, and `E` and sends `*|KeyX`, `*|KeyY`, and `*|KeyZ` (`-1..1`) to `broom-flight-set` when they change; a broom uses them while you ride it.
+
+## Bringing a broom to you
+
+From the page's code, or the space's dev tools console, a broom can be brought to you. It's swapped for a new one 1.5 m in front of you at saddle height, facing the way you look, with the same settings. It goes back to its own spot `return-after` seconds after you next get off it, as usual.
+
+```js
+flightBroom.bring()             // the first broom
+flightBroom.bring(2)            // broom 2 (broom-2-position)
+flightBroom.bring('broom-1-2')  // a broom by its key
+flightBroom.keys()              // every broom's key
+```
+
+It reads your position from the app's `pose-update` event, once. The app only sends that while you move, so if you keep perfectly still it gives up after 3 seconds and logs a warning: move your head a little and try again.
 
 When new bundles are uploaded to `bundles/<platform>/broomflight`, bump `BUNDLE_VERSION` in `snippet.js`: the app caches bundles by URL, so without a new version players keep the old one.
 

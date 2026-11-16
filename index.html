@@ -119,7 +119,7 @@
           <li>Press <kbd>Space</kbd> to get off.</li>
         </ol>
         <p>A broom waits where the world's builder put it, with a <strong>Click the broom to ride</strong> label over it. The first time you sit on one, a message shows the controls for VR or PC.</p>
-        <p>The broom isn't shared: everyone has it to themselves, and others see you flying but not the broom. After you get off, it goes back to its spot 15 seconds later.</p>
+        <p>You have one broom out at a time: sitting on a broom sends your other one away. With <code>sync="true"</code> the brooms are shared, so everyone sees them, and sitting on one puts a new one at the spot. After you get off, it goes back to its spot 15 seconds later (a shared one goes away instead).</p>
       </section>
 
       <section id="guide">
@@ -207,6 +207,8 @@
   help="true"
   label="true"
   label-text="Click the broom to ride"
+  sync="false"
+  sync-limit="10"
   bundle-base=""&gt;
   &lt;bs-gizmo type="position" attribute="position"/&gt;
   &lt;bs-gizmo type="box" attribute="position" size="0.5 0.16 0.5"/&gt;
@@ -244,6 +246,8 @@
               <tr><td><code>label</code></td><td><code>true</code></td><td><code>false</code> hides the <strong>Click the broom to ride</strong> label over the broom's spot.</td></tr>
               <tr><td><code>label-text</code></td><td><code>Click the broom to ride</code></td><td>What the label over the brooms says. No double quotes.</td></tr>
               <tr><td><code>broom-2-label-text</code>, <code>broom-3-label-text</code>, ...</td><td><code>label-text</code></td><td><code>label-text</code> for that broom only.</td></tr>
+              <tr><td><code>sync</code></td><td><code>false</code></td><td><code>true</code>: the brooms are shared, so everyone sees them. Sitting on one puts a new shared broom at the spot; one you're done with goes away for everyone.</td></tr>
+              <tr><td><code>sync-limit</code></td><td><code>10</code></td><td>Most shared brooms out in the space at once. Past it, the broom at each spot is a local one.</td></tr>
               <tr><td><code>bundle-base</code></td><td>(empty)</td><td>A folder URL to load the broom's bundles from instead of this site.</td></tr>
             </tbody>
           </table>
@@ -253,9 +257,10 @@
       <section class="info-block">
         <h2>Good to know</h2>
         <ul>
-          <li>The broom isn't shared: everyone has it to themselves, and others see you flying but not the broom.</li>
+          <li>Without <code>sync</code>, others see you flying but not the broom. With <code>sync="true"</code> the brooms are shared, up to <code>sync-limit</code> out at once; past that each spot has a local broom again.</li>
           <li>Letting go of the handles leaves you hovering in place until you steer again or get off.</li>
           <li>The broom stops at walls and floors, sliding along them. Set <code>collide="false"</code> to fly through them.</li>
+          <li>Your page's code can bring a broom to you: <code>flightBroom.bring()</code> puts the first broom in front of you, and <code>flightBroom.bring(2)</code> broom 2.</li>
         </ul>
       </section>
     </main>
@@ -354,6 +359,8 @@
       help="true"
       label="true"
       label-text="Click the broom to ride"
+      sync="true"
+      sync-limit="10"
       bundle-base="">
       <bs-gizmo type="position" attribute="position"/>
       <bs-gizmo type="box" attribute="position" size="0.5 0.16 0.5"/>

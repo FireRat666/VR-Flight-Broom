@@ -12,7 +12,13 @@
 // This script loads a small kit (an asset bundle holding the broom, with a Visual Scripting graph that does the
 // flying) for each broom spot: `position`, and broom-2-position, broom-3-position and so on. When a broom spawns its
 // graph calls window.broomFlightReady(key), and this script answers with the settings.
-// The broom isn't shared: everyone has it to themselves, and others see you flying but not the broom.
+// One broom out each: sitting on a broom sends your other one away. Without sync everyone has brooms of their own:
+// others see you flying but not the broom, and it goes back to its spot return-after seconds after you get off.
+// With sync="true" the brooms at each spot are shared, numbered 1, 2, 3... with network ids every page agrees on:
+// everyone sees the same broom, and whoever sits on it flies it. Sitting on one puts a new shared broom at the spot
+// for everyone, until sync-limit are out; then the spot has a plain local broom again (only you see yours).
+// A shared broom you're done with (return-after seconds after you get off, or when you sit on another, or leave)
+// goes away for everyone.
 //
 // Settings (attributes on the element, all optional):
 //   position      Where the broom waits, "x y z" (the top of its saddle).                Default "0 0.8 2"
@@ -38,13 +44,25 @@
 //   label         "false" to hide the label over the brooms.                           Default true
 //   label-text    What the label says (no double quotes).              Default "Click the broom to ride"
 //   broom-N-label-text  label-text for broom N only.                                    Default label-text
+//   sync          "true": the brooms are shared, and everyone sees them (one out each). Default false
+//   sync-limit    Most shared brooms out in the space at once; past it, brooms are local. Default 10
 //   bundle-base   Folder URL of the kit bundles.                     Default bundles/ next to this file
+//
+// From the page's code (or the dev tools console), a broom can be brought to you: it's put 1.5 m in front of you at
+// saddle height, facing the way you look (a fresh broom, with the same settings; it goes back to its own spot
+// return-after seconds after you next get off it, as usual). With sync it's a local broom of your own, and the shared
+// ones stay at their spot:
+//   flightBroom.bring()            the first broom
+//   flightBroom.bring(2)           broom 2 (broom-2-position), or a broom's key: flightBroom.bring('broom-1-2')
+//   flightBroom.keys()             every broom's key
 (() => {
   const SNIPPET_NAME = 'broom';
   const BUNDLE_FILE = 'broomflight';
   // The app caches kit bundles by URL, so bump this whenever the bundles are rebuilt.
-  const BUNDLE_VERSION = '7';
+  const BUNDLE_VERSION = '8';
   const SET_ID = 'broom-flight-set';
+  // Your user state: the shared broom you have out, "key|n" (broom n of spot key), so every page counts it as taken.
+  const BROOM_PROP = 'broom-flight-broom';
   const LOG = 'Flight Broom (snippet)';
 
   const NUMBERS = [
@@ -66,6 +84,7 @@
     ['help', 'Help', true],
     ['label', 'ShowLabel', true],
     ['collide', 'Collide', true],
+    ['sync', 'Sync', false],
   ];
 
   const thisScript = document.currentScript;
@@ -100,7 +119,8 @@
       vars[key] = (v === '' ? fallback : v === 'true') ? 1 : 0;
     }
     const yaw = parseFloat(attr('yaw'));
-    return { vars, el, labelText: attr('label-text'), position: parsePosition(attr('position')) || [0, 0.8, 2], yaw: Number.isFinite(yaw) ? yaw : 0 };
+    const limit = parseInt(attr('sync-limit'), 10);
+    return { vars, el, syncLimit: Number.isFinite(limit) && limit >= 0 ? limit : 10, labelText: attr('label-text'), position: parsePosition(attr('position')) || [0, 0.8, 2], yaw: Number.isFinite(yaw) ? yaw : 0 };
   };
 
   const send = async (key) => {
@@ -152,8 +172,10 @@
       await obj.AddComponent(new BS.AssetBundle(bundleUrls(el)));
       await obj.AddComponent(new BS.KitItem({ path: '*' }));
       console.log(`${LOG}: loading broom ${key} (bundle v${BUNDLE_VERSION}) at ${position.join(' ')}`);
+      return obj;
     } catch (e) {
       console.error(`${LOG}: failed to start ${key}`, e);
+      return null;
     }
   };
 
@@ -167,8 +189,148 @@
       const vars = seatTurn === undefined ? settings.vars : { ...settings.vars, SeatTurn: seatTurn };
       placements.set(key, { ...settings, vars, position, labelText: labelText || settings.labelText });
       if (vars.SeatTurn) console.log(`${LOG}: ${key} has its seat turned ${vars.SeatTurn} degrees`);
-      await spawnBroom(el, key, position, settings.yaw);
+      // Shared brooms are spawned by refresh() below, from who has which out.
+      if (!vars.Sync) placements.get(key).obj = await spawnBroom(el, key, position, settings.yaw);
     }
+    refresh();
+  };
+
+  // ---- Bringing a broom to you: read your head's pose once (the app sends pose-update only while you move, so this
+  // waits up to 3 seconds for one), then swap the broom for a new one in front of you.
+  const AHEAD = 1.5; // metres in front of your head
+  const SADDLE_BELOW_EYES = 0.8; // metres from your eyes down to the saddle (standing)
+  const onePose = (ms = 3000) => new Promise((resolve) => {
+    const scene = BS.Scene.GetInstance();
+    const done = (pose) => { clearTimeout(timer); try { scene.Off('pose-update', take); } catch (e) {} resolve(pose); };
+    const take = (e) => done(e.detail);
+    const timer = setTimeout(() => done(null), ms);
+    scene.On('pose-update', take);
+  });
+  const inFrontOf = (head) => {
+    const { position: p, rotation: q } = head;
+    const fx = 2 * (q.x * q.z + q.w * q.y), fz = 1 - 2 * (q.x * q.x + q.y * q.y); // where you look, flattened
+    const len = Math.hypot(fx, fz) || 1;
+    return {
+      position: [p.x + (fx / len) * AHEAD, p.y - SADDLE_BELOW_EYES, p.z + (fz / len) * AHEAD],
+      yaw: (Math.atan2(fx, fz) * 180) / Math.PI,
+    };
+  };
+  const findKey = (which) => {
+    const keys = [...placements.keys()];
+    if (which === undefined) return keys[0];
+    if (typeof which === 'number') return keys.find((k) => k.endsWith(`-${which}`));
+    return placements.has(String(which)) ? String(which) : undefined;
+  };
+  const bring = async (which) => {
+    const key = findKey(which);
+    const placement = key && placements.get(key);
+    if (!placement) { console.warn(`${LOG}: no broom ${which === undefined ? '' : which} to bring`); return false; }
+    const pose = await onePose();
+    if (!pose) { console.warn(`${LOG}: no position from the app yet; move your head a little and try again`); return false; }
+    const spot = inFrontOf(pose.head);
+    const position = spot.position.map((n) => +n.toFixed(3));
+    // With sync the shared brooms stay at their spot: you get a local one of your own (replacing one you brought).
+    const slot = placement.vars.Sync ? 'brought' : 'obj';
+    if (placement[slot]) { try { await placement[slot].Destroy(); } catch (e) {} }
+    placement[slot] = await spawnBroom(placement.el, key, position, spot.yaw);
+    return true;
+  };
+  window.flightBroom = { bring, keys: () => [...placements.keys()] };
+
+  // ---- Sync: each spot's brooms are numbered, and their network ids are the same on every page ("key-s1",
+  // "key-s2"...), so they're the same brooms for everyone. Everyone's user state says which broom they have out; from
+  // that every page works out the same thing: the brooms out (kept, wherever their riders took them) and a new one
+  // waiting at the spot (the lowest number not out), until sync-limit are out in the space. Past that the broom
+  // waiting at the spot is a plain local one.
+  const ME = '(me)';
+  const taken = new Map();  // player uid (ME for you) -> { key, n }: the shared broom they have out
+  const idFor = (key, n) => `${key}-s${n}`;
+
+  const publish = () => {
+    const m = taken.get(ME);
+    BS.Scene.GetInstance().SetUserProps({ [BROOM_PROP]: m ? `${m.key}|${m.n}` : '' });
+  };
+  const readEntry = (value) => {
+    const m = /^([A-Za-z0-9_-]+)\|(\d+)$/.exec(String(value || '').trim());
+    return m ? { key: m[1], n: Number(m[2]) } : null;
+  };
+  const setTaken = (uid, entry) => {
+    if (entry) taken.set(uid, entry);
+    else taken.delete(uid);
+  };
+
+  // A broom spawned for a spot: kept as a record, so one that's dropped while it's still loading goes too.
+  const spawnRecord = (place, name, n) => {
+    const rec = { n, obj: null, gone: false };
+    spawnBroom(place.el, name, place.position, place.yaw).then((obj) => {
+      if (rec.gone && obj) obj.Destroy();
+      else rec.obj = obj;
+    });
+    return rec;
+  };
+  const drop = (rec) => {
+    rec.gone = true;
+    if (rec.obj) rec.obj.Destroy();
+  };
+
+  const refresh = () => {
+    for (const [key, place] of placements) {
+      if (!place.vars.Sync) continue;
+      place.out = place.out || new Map(); // n -> record
+      const out = new Set();
+      for (const entry of taken.values()) if (entry.key === key) out.add(entry.n);
+      // Gone: no one has it out any more.
+      for (const [n, rec] of place.out) {
+        if (!out.has(n)) { drop(rec); place.out.delete(n); }
+      }
+      // Out: the one waiting here if it's that one, or spawned (it moves to wherever its rider has it).
+      for (const n of out) {
+        if (place.out.has(n)) continue;
+        if (place.waiting && place.waiting.n === n) { place.out.set(n, place.waiting); place.waiting = null; }
+        else place.out.set(n, spawnRecord(place, `${key}~${idFor(key, n)}`, n));
+      }
+      // Waiting at the spot: shared while there's room, local (n 0) once sync-limit are out. They're swapped as the
+      // room comes and goes, except a local one while it's out (you're riding it, or it's waiting to go home).
+      const room = taken.size < place.syncLimit;
+      if (place.waiting && place.waiting.n > 0 && !room) { drop(place.waiting); place.waiting = null; }
+      if (place.waiting && place.waiting.n === 0 && room && !place.localOut) { drop(place.waiting); place.waiting = null; }
+      if (!place.waiting) {
+        let n = 0;
+        if (room) for (n = 1; out.has(n); n++);
+        place.waiting = spawnRecord(place, n ? `${key}~${idFor(key, n)}` : key, n);
+      }
+    }
+  };
+
+  // You sat on shared broom `id` of spot `key`: it's yours (one each, so it replaces any other), and every page puts a
+  // new one at the spot.
+  window.broomFlightTaken = (key, id) => {
+    key = String(key);
+    id = String(id || '');
+    const m = id.startsWith(`${key}-s`) ? Number(id.slice(key.length + 2)) : NaN;
+    if (!Number.isInteger(m) || m < 1) return false;
+    taken.set(ME, { key, n: m });
+    publish();
+    refresh();
+    return true;
+  };
+
+  // A local broom of spot `key` is out (you sat on it) or back at its spot.
+  window.broomFlightLocal = (key, out) => {
+    const place = placements.get(String(key));
+    if (place) { place.localOut = !!out; if (!out) refresh(); }
+    return true;
+  };
+
+  // You're done with shared broom `id`: it goes away for everyone.
+  window.broomFlightGone = (id) => {
+    const m = taken.get(ME);
+    if (m && idFor(m.key, m.n) === String(id)) {
+      taken.delete(ME);
+      publish();
+      refresh();
+    }
+    return true;
   };
 
   const scan = () => document.querySelectorAll(`bs-snippet[name="${SNIPPET_NAME}"]`).forEach(start);
@@ -204,6 +366,22 @@
       const key = e.detail && e.detail.key;
       if (!held.delete(key)) return;
       sendKeys();
+    });
+    // Other players' shared brooms: the ones already out when you arrive, and as they change.
+    for (const user of Object.values(scene.users || {})) {
+      if (user && !user.isLocal && user.props) setTaken(user.uid, readEntry(user.props[BROOM_PROP]));
+    }
+    scene.On('user-state-changed', (e) => {
+      const user = e.detail && e.detail.user;
+      if (!user || user.isLocal) return;
+      for (const change of e.detail.changes || []) {
+        if (change.key !== BROOM_PROP) continue;
+        setTaken(user.uid, readEntry(change.newValue));
+        refresh();
+      }
+    });
+    scene.On('user-left', (e) => {
+      if (e.detail && taken.delete(e.detail.uid)) refresh();
     });
     scan();
     new MutationObserver(scan).observe(document.body, { childList: true, subtree: true });
