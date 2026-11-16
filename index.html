@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- WEB PAGE HEAD START -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#00ff44">
+    <title>Flight Broom: ride and fly a broomstick in AltspaceVR | FireR.at</title>
+    <meta name="description" content="A broomstick you sit on and fly in AltspaceVR (altvr.app) worlds: steer it by its handles, and the right stick sets the speed. Works at any level, in VR and on PC. Drop-in snippet.">
+    <meta name="keywords" content="AltspaceVR broom, VR flying broomstick, fly in AltspaceVR, altvr.app snippet, Creator SDK snippet, FireRat">
+    <meta name="author" content="FireRat">
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="FireR.at">
+    <meta property="og:title" content="Flight Broom: ride and fly a broomstick in AltspaceVR | FireR.at">
+    <meta property="og:description" content="A broomstick you sit on and fly: steer it by its handles, and the right stick sets the speed. Works at any level, in VR and on PC.">
+    <meta property="og:url" content="https://flight-broom.firer.at/">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Flight Broom: ride and fly a broomstick in AltspaceVR | FireR.at">
+    <meta name="twitter:description" content="A broomstick you sit on and fly: steer it by its handles, and the right stick sets the speed.">
+    <link rel="canonical" href="https://flight-broom.firer.at/">
+    <link rel="icon" href="https://firer.at/files/favicon.ico" type="image/x-icon">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "Flight Broom for AltspaceVR",
+          "url": "https://flight-broom.firer.at/",
+          "description": "A broomstick you sit on and fly in AltspaceVR (altvr.app) worlds. Works at any level, in VR and on PC.",
+          "applicationCategory": "Utility",
+          "operatingSystem": "AltspaceVR",
+          "author": {
+            "@type": "Person",
+            "name": "FireRat",
+            "url": "https://firer.at/"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "FireR.at", "item": "https://firer.at/" },
+            { "@type": "ListItem", "position": 2, "name": "Altspace & Banter Games", "item": "https://firer.at/games.html" },
+            { "@type": "ListItem", "position": 3, "name": "Flight Broom", "item": "https://flight-broom.firer.at/" }
+          ]
+        }
+      ]
+    }
+    </script>
+    <script>
+      // In Altspace this page is the space itself, so the web page part is hidden.
+      (function () {
+        var hide = function () { document.documentElement.classList.add('in-space'); };
+        if (window.isBanter || window.BS) hide();
+        window.addEventListener('bs-loaded', hide);
+      })();
+    </script>
+    <link rel="stylesheet" href="https://firer.at/pages/nstyle.css">
+    <script src="https://firer.at/scripts/RandomBG.js"></script>
+    <style>
+      .in-space .fire-page, .in-space body::before, .in-space body::after { display: none !important; }
+      .fire-page #guide ul, .fire-page .info-block ul, .fire-page .info-block ol { color: var(--text-secondary); margin: 0 0 1.25rem 1.4rem; }
+      .fire-page li { margin-bottom: 0.4rem; }
+      .fire-page .info-block { margin-bottom: 3rem; }
+      .fire-page footer { text-align: center; }
+      .fire-page .table-wrap { overflow-x: auto; margin-bottom: 1.25rem; }
+      .fire-page table { border-collapse: collapse; width: 100%; color: var(--text-secondary); }
+      .fire-page th, .fire-page td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); vertical-align: top; }
+      .fire-page th { color: var(--text-primary, #fff); }
+      .fire-page td code { white-space: nowrap; }
+    </style>
+    <!-- WEB PAGE HEAD END -->
+</head>
+
+<body>
+<!-- WEB PAGE START: shown in a normal browser, hidden in Altspace -->
+<div class="fire-page">
+  <div class="ambient-glow-2"></div>
+  <div class="container">
+    <header>
+      <span class="eyebrow">Altspace tool</span>
+      <h1><span class="text-gradient">Flight Broom</span></h1>
+      <p>A broomstick you sit on and fly: steer it by its handles, and the right stick sets the speed. Made for <strong>SideQuest / AltspaceVR</strong> worlds.</p>
+      <p>It works at <strong>any level</strong> (it doesn't use bird flight), in <strong>VR</strong> and on <strong>PC</strong>. Open <a href="https://flight-broom.firer.at">flight-broom.firer.at</a> as a space in Altspace to try it.</p>
+    </header>
+
+    <nav>
+      <a href="https://firer.at/games.html" class="buttonG buttonss buttonActive">&larr; All games</a>
+      <a href="https://firer.at/" class="buttonss buttonMain">FireR.at</a>
+      <a href="https://github.com/FireRat666/Altspace-Flight-Broom" class="buttonW buttonss" target="_blank">GitHub</a>
+      <a href="https://ko-fi.com/FireRat666" class="buttonGY buttonss" target="_blank">Ko-fi</a>
+    </nav>
+
+    <main>
+      <section class="info-block">
+        <h2>How to fly</h2>
+        <h3>In VR</h3>
+        <ol>
+          <li><strong>Click the broom</strong> to sit on it.</li>
+          <li><strong>Hold its handles</strong> with one hand or both: lift them to climb, push them down to dive, move them left or right to turn. The <strong>left stick</strong> steers too: forward dives, back climbs, left and right turn. The broom tilts you with it, and lifting or pushing rises or sinks you even when you're still.</li>
+          <li>Push the <strong>right stick</strong> up to speed up, down to slow down. Click it in to stop.</li>
+          <li><strong>Let go of the handles</strong> to hover.</li>
+          <li>Press <kbd>B</kbd> (or jump) to get off.</li>
+        </ol>
+        <h3>On PC</h3>
+        <ol>
+          <li><strong>Click the broom</strong> to sit on it.</li>
+          <li><kbd>W</kbd> speeds up, <kbd>S</kbd> slows down, <kbd>A</kbd> and <kbd>D</kbd> turn, <kbd>E</kbd> climbs, and <kbd>Q</kbd> dives (straight up or down when you're still). The handles work too.</li>
+          <li>Press <kbd>Space</kbd> to get off.</li>
+        </ol>
+        <p>A broom waits where the world's builder put it, with a <strong>Click the broom to ride</strong> label over it. The first time you sit on one, a message shows the controls for VR or PC.</p>
+        <p>The broom isn't shared: everyone has it to themselves, and others see you flying but not the broom. After you get off, it goes back to its spot 15 seconds later.</p>
+      </section>
+
+      <section id="guide">
+        <h2>1. Pick how you build your world</h2>
+        <p>Flight Broom is an Altspace <strong>snippet</strong>: a ready-made piece you drop into your world. Its name (the "slug") is always:</p>
+        <p><button type="button" class="copy-chip" data-copy="broom">broom <span class="copy-label">Copy</span></button></p>
+        <p>Type it exactly like that (<strong>all lowercase</strong>). Pick the way you build your world and follow that section below.</p>
+
+        <div class="choice-grid">
+          <div class="choice-card">
+            <div class="tech-badges"><span class="badge vr">Recommended</span></div>
+            <h3>I build my world in Unity</h3>
+            <p>You use the Altspace <strong>Creator SDK</strong> in Unity. You get the settings in the Inspector and can drag the broom's spot in the Scene view.</p>
+            <a href="#unity" class="buttonss btn-gradient">Go to the Unity steps</a>
+          </div>
+          <div class="choice-card">
+            <div class="tech-badges"><span class="badge json">No Unity needed</span></div>
+            <h3>I edit my world on the website</h3>
+            <p>You edit your world on <strong>altvr.app</strong> in your browser. You copy the snippet from the Snippets section (or below) and paste it into your world's HTML.</p>
+            <a href="#website" class="buttonss buttonG">Go to the website steps</a>
+          </div>
+        </div>
+
+        <div id="unity" class="guide-sub">
+          <h2>2a. Add it in Unity</h2>
+          <p>You need a Unity project with the Altspace <strong>Creator SDK</strong> already set up, and your world's scene open.</p>
+          <ol class="steps">
+            <li><strong>Make an empty object.</strong> In the top menu choose <span class="menu">GameObject &rsaquo; Create Empty</span>. Rename it to <code>Flight Broom</code> so you can find it later (the object's name doesn't matter, only the slug does).</li>
+            <li><strong>Put it at the middle of the world.</strong> With the new object selected, look at <strong>Transform</strong> in the Inspector and set <strong>Position</strong> to <code>0 0 0</code> and <strong>Rotation</strong> to <code>0 0 0</code>.
+              <span class="sub">Why: you don't move the broom by moving this object. You move it with the snippet's own <code>position</code> setting (step 6). If the object (or anything it's inside) isn't at <code>0 0 0</code>, the SDK's gizmo won't line up with where the broom really appears.</span></li>
+            <li><strong>Add the Snippet component.</strong> Click <span class="menu">Add Component</span>, type <code>Snippet</code> in the search box, and pick <span class="menu">BS &rsaquo; Snippet</span>.</li>
+            <li><strong>Type the slug and press Enter.</strong> In the Snippet's <strong>Slug</strong> box type <button type="button" class="copy-chip" data-copy="broom">broom <span class="copy-label">Copy</span></button> and press <kbd>Enter</kbd> (the box only takes it after Enter or clicking somewhere else).
+              <span class="sub">It downloads the snippet and adds it to your world's <code>Assets/WebRoot/index.html</code> for you. After a moment the Inspector shows the title <strong>Flight Broom</strong> and a list of settings. If nothing happens, click <strong>Refresh from server</strong>.</span></li>
+            <li><strong>Save the scene.</strong> Press <kbd>Ctrl</kbd> + <kbd>S</kbd> (Windows / Linux) or <kbd>Cmd</kbd> + <kbd>S</kbd> (Mac).
+              <span class="sub">Do this every time you add or remove a snippet. Closing Unity without saving is the main way extra copies of the snippet end up in <code>index.html</code>.</span></li>
+            <li><strong>Place and configure it.</strong> Drag the gizmo handle in the Scene view to choose where the broom waits, and change the other settings in the Inspector. They're all listed under <a href="#settings">Settings</a>.</li>
+            <li><strong>Upload your world</strong> the same way you always do, then join it in Altspace and click the broom to ride.</li>
+          </ol>
+          <div class="callout info">
+            <p><strong>More brooms:</strong> add Flight Broom once, then give it more spots. Click <strong>Open index.html</strong> in the Snippet component and add <code>broom-2-position="5 0.8 0"</code>, <code>broom-3-position="0 20 4"</code> and so on to the snippet. Each one is another broom, with the same settings. Use as many as you like. Add <code>broom-2-seat-turn="90"</code> to ride broom 2 side-saddle.</p>
+          </div>
+        </div>
+
+        <div id="website" class="guide-sub">
+          <h2>2b. Add it on the website</h2>
+          <ol class="steps">
+            <li><strong>Open your world for editing</strong> on <a href="https://altvr.app" target="_blank" rel="noopener">altvr.app</a> and go to the <strong>Snippets</strong> section.</li>
+            <li><strong>Find Flight Broom.</strong> Set the list to show <strong>All</strong> snippets, then search for <code>Flight Broom</code> (or scroll to it) and open it.</li>
+            <li><strong>Copy it.</strong> Click <strong>Copy &amp; open index.html</strong>. This copies the snippet's code and opens your world's HTML (or copy the full snippet code below).</li>
+            <li><strong>Paste it in the right place.</strong> If your HTML has these two lines, paste <em>between</em> them:
+<pre><code>&lt;!-- snippet section --&gt;
+   paste here
+&lt;!-- end snippet section --&gt;</code></pre>
+              <span class="sub">If it doesn't have them, paste it just before <code>&lt;/body&gt;</code>.</span></li>
+            <li><strong>Change the settings</strong> by editing the values in quotes in the pasted code, for example <code>position="0 0.8 2"</code>. For more brooms, add <code>broom-2-position="5 0.8 0"</code>, <code>broom-3-position="0 20 4"</code> and so on, as many as you like.</li>
+            <li><strong>Save</strong>, then join your world and click the broom to ride.</li>
+          </ol>
+          <div class="callout warn">
+            <p><strong>Keep the code tidy.</strong> Every value needs quotes around it (<code>max-speed="12"</code>, not <code>max-speed=12</code>), and a <code>&amp;</code> in any link must be written as <code>&amp;amp;</code>. Unity reads this part strictly, and one mistake can break the whole snippet section.</p>
+          </div>
+
+          <h3>The full snippet code</h3>
+          <p>This is everything the snippet adds, with every setting at its default. Click the code to copy it.</p>
+          <div class="code-header">Full snippet code</div>
+          <pre><code>&lt;!-- snippet section --&gt;
+&lt;bs-snippet name="broom" title="Flight Broom" single="true"
+  description="A broomstick you sit on and fly: steer it by its handles, the right stick sets the speed."
+  script="https://flight-broom.firer.at/snippet.js"
+  position="0 0.8 -2"
+  yaw="0"
+  max-speed="12"
+  accel="4"
+  turn-speed="90"
+  max-pitch="50"
+  stick-angle="25"
+  seat-turn="0"
+  climb-speed="3"
+  tilt="1"
+  collide="true"
+  steer-range="0.2"
+  dead-zone="0.03"
+  response="3"
+  pitch-ease="3"
+  return-after="15"
+  help="true"
+  label="true"
+  label-text="Click the broom to ride"
+  bundle-base=""&gt;
+  &lt;bs-gizmo type="position" attribute="position"/&gt;
+  &lt;bs-gizmo type="box" attribute="position" size="0.5 0.16 0.5"/&gt;
+&lt;/bs-snippet&gt;
+&lt;!-- end snippet section --&gt;</code></pre>
+        </div>
+      </section>
+
+      <section id="settings" class="info-block">
+        <h2>Settings</h2>
+        <p>All optional. An empty or missing setting uses the default.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code>position</code></td><td><code>0 0.8 2</code></td><td>Where the broom waits (a Unity world position, the top of its saddle), and where it goes back to.</td></tr>
+              <tr><td><code>broom-2-position</code>, <code>broom-3-position</code>, ...</td><td>(none)</td><td>More brooms, each one <code>x y z</code>. Add as many as you like; they all use the settings below.</td></tr>
+              <tr><td><code>broom-2-seat-turn</code>, <code>broom-3-seat-turn</code>, ...</td><td><code>seat-turn</code></td><td><code>seat-turn</code> for that broom only, for example <code>broom-2-seat-turn="90"</code> for a side-saddle broom.</td></tr>
+              <tr><td><code>yaw</code></td><td><code>0</code></td><td>Which way the brooms face, in degrees about up.</td></tr>
+              <tr><td><code>max-speed</code></td><td><code>12</code></td><td>Top speed in metres per second.</td></tr>
+              <tr><td><code>accel</code></td><td><code>4</code></td><td>Metres per second gained or lost per second with the right stick (or <kbd>W</kbd> / <kbd>S</kbd>).</td></tr>
+              <tr><td><code>turn-speed</code></td><td><code>90</code></td><td>Degrees per second with the handles right over to the side.</td></tr>
+              <tr><td><code>max-pitch</code></td><td><code>50</code></td><td>Degrees the broom noses up or down with the handles right up or down.</td></tr>
+              <tr><td><code>stick-angle</code></td><td><code>25</code></td><td>Degrees the stick points up where it rests. Holding it there is level flight.</td></tr>
+              <tr><td><code>seat-turn</code></td><td><code>0</code></td><td>Degrees the seat (and you) turn from the broom. <code>90</code> or <code>-90</code> rides side-saddle; the handles stay at the broom's front.</td></tr>
+              <tr><td><code>climb-speed</code></td><td><code>3</code></td><td>Metres per second straight up or down with the handles right up or down (or <kbd>E</kbd> / <kbd>Q</kbd>), on top of the speed, so you can rise or sink on the spot.</td></tr>
+              <tr><td><code>tilt</code></td><td><code>1</code></td><td>How much of the nose up or down tilts you on the seat: <code>0</code> keeps you upright, <code>1</code> tilts you all the way with the broom.</td></tr>
+              <tr><td><code>collide</code></td><td><code>true</code></td><td><code>false</code> lets the broom fly through walls, floors and other solid things.</td></tr>
+              <tr><td><code>steer-range</code></td><td><code>0.2</code></td><td>Metres past the dead zone for a full turn or climb.</td></tr>
+              <tr><td><code>dead-zone</code></td><td><code>0.03</code></td><td>Metres round where the handles rest that don't steer.</td></tr>
+              <tr><td><code>response</code></td><td><code>3</code></td><td>How quickly your speed follows, per second. Higher feels snappier, lower floatier.</td></tr>
+              <tr><td><code>pitch-ease</code></td><td><code>3</code></td><td>How quickly the broom noses up and down, per second.</td></tr>
+              <tr><td><code>return-after</code></td><td><code>15</code></td><td>Seconds after you get off before the broom goes back. <code>false</code> (or <code>0</code>): brooms stay where you left them.</td></tr>
+              <tr><td><code>help</code></td><td><code>true</code></td><td><code>false</code> skips the message with the controls the first time someone sits on a broom.</td></tr>
+              <tr><td><code>label</code></td><td><code>true</code></td><td><code>false</code> hides the <strong>Click the broom to ride</strong> label over the broom's spot.</td></tr>
+              <tr><td><code>label-text</code></td><td><code>Click the broom to ride</code></td><td>What the label over the brooms says. No double quotes.</td></tr>
+              <tr><td><code>broom-2-label-text</code>, <code>broom-3-label-text</code>, ...</td><td><code>label-text</code></td><td><code>label-text</code> for that broom only.</td></tr>
+              <tr><td><code>bundle-base</code></td><td>(empty)</td><td>A folder URL to load the broom's bundles from instead of this site.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="info-block">
+        <h2>Good to know</h2>
+        <ul>
+          <li>The broom isn't shared: everyone has it to themselves, and others see you flying but not the broom.</li>
+          <li>Letting go of the handles leaves you hovering in place until you steer again or get off.</li>
+          <li>The broom stops at walls and floors, sliding along them. Set <code>collide="false"</code> to fly through them.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>A broomstick you sit on and fly. Open <a href="https://flight-broom.firer.at">flight-broom.firer.at</a> as a space in Altspace to try it.</p>
+      <p>&copy; <span class="fire-year"></span> <a href="https://firer.at/">FireR.at</a></p>
+    </footer>
+  </div>
+  <script>
+    document.querySelectorAll('.fire-year').forEach(el => { el.textContent = new Date().getFullYear(); });
+    document.querySelectorAll('.fire-page [data-copy]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const label = btn.querySelector('.copy-label');
+        try {
+          await navigator.clipboard.writeText(btn.dataset.copy);
+          if (label) { const old = label.textContent; label.textContent = 'Copied'; setTimeout(() => { label.textContent = old; }, 1500); }
+        } catch (e) {
+          if (label) { const old = label.textContent; label.textContent = 'Select it'; setTimeout(() => { label.textContent = old; }, 1500); }
+        }
+      });
+    });
+    document.querySelectorAll('.fire-page pre').forEach(pre => {
+      pre.addEventListener('click', async () => {
+        const header = pre.previousElementSibling;
+        try {
+          await navigator.clipboard.writeText(pre.innerText);
+          if (header && header.classList.contains('code-header')) { const t = header.textContent; header.textContent = 'Copied!'; setTimeout(() => { header.textContent = t; }, 2000); }
+        } catch (e) { console.error('Copy failed', e); }
+      });
+    });
+  </script>
+</div>
+<!-- WEB PAGE END -->
+    <a-scene></a-scene>
+    <script>
+        // A big sphere round the space with a sky picture on its inside.
+        async function createSky() {
+            const sky = await new BS.GameObject({ name: "BanterSky" }).Async();
+            await sky.AddComponent(new BS.BanterSphere({ radius: 300 }));
+            await sky.AddComponent(new BS.BanterInvertedMesh()); // Faces inwards, so it shows from inside
+            await sky.AddComponent(new BS.BanterMaterial({
+                shaderName: "Unlit/Diffuse",
+                texture: "https://drop.firer.at/Assets/skybox-4k-zc.jpg",
+                color: new BS.Vector4(1, 1, 1, 1),
+                side: BS.MaterialSide.Front
+            }));
+            await sky.AddComponent(new BS.Transform());
+        }
+
+        // A big floor, so there's room to fly about and somewhere to land.
+        async function createFloor() {
+            createSky();
+            const floor = await new BS.GameObject("BanterFloor").Async();
+            const width = 60; const height = 0.1; const depth = 60;
+
+            const geoArgs = [BS.GeometryType.BoxGeometry, null, width, height, depth, 1, 1, 1, 0.5, 24, 0, 6.28, 0, 6.28, 8, false, 0.5, 0.5, 0, 1, 24, 8, 0.4, 16, 6.28, 2, 3, 5, 5, 0, ""];
+            await floor.AddComponent(new BS.BanterGeometry(...geoArgs));
+
+            const texUrl = "https://cdn.aframe.io/a-painter/images/floor.jpg";
+            await floor.AddComponent(new BS.BanterMaterial("Unlit/Texture", texUrl, new BS.Vector4(1, 1, 1, 1), BS.MaterialSide.Front, true));
+            await floor.AddComponent(new BS.BoxCollider(false, new BS.Vector3(0, 0, 0), new BS.Vector3(width, height, depth)));
+
+            let transform = floor.GetComponent(BS.ComponentType.Transform);
+            if (!transform) transform = await floor.AddComponent(new BS.Transform());
+            transform.localPosition = new BS.Vector3(0, -0.05, 0); // Flush with 0
+        }
+
+        window.addEventListener("bs-loaded", async () => {
+            createFloor();
+        });
+    </script>
+    <!-- snippet section -->
+    <bs-snippet name="broom" title="Flight Broom" single="true"
+      description="A broomstick you sit on and fly: steer it by its handles, the right stick sets the speed."
+      script="https://flight-broom.firer.at/snippet.js"
+      position="0 0.8 -2"
+      broom-2-position="3 0.8 -2"
+      broom-2-seat-turn="90"
+      broom-2-label-text="Ride side-saddle"
+      yaw="0"
+      max-speed="12"
+      accel="4"
+      turn-speed="90"
+      max-pitch="50"
+      stick-angle="25"
+      seat-turn="0"
+      climb-speed="3"
+      tilt="1"
+      collide="true"
+      steer-range="0.2"
+      dead-zone="0.03"
+      response="3"
+      pitch-ease="3"
+      return-after="15"
+      help="true"
+      label="true"
+      label-text="Click the broom to ride"
+      bundle-base="">
+      <bs-gizmo type="position" attribute="position"/>
+      <bs-gizmo type="box" attribute="position" size="0.5 0.16 0.5"/>
+    </bs-snippet>
+    <!-- end snippet section -->
+</body>
+
+</html>
