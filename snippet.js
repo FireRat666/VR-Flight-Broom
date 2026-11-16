@@ -46,6 +46,7 @@
 //   broom-N-label-text  label-text for broom N only.                                    Default label-text
 //   sync          "true": the brooms are shared, and everyone sees them (one out each). Default false
 //   sync-limit    Most shared brooms out in the space at once; past it, brooms are local. Default 10
+//   respawn-delay Seconds after a shared broom is taken before the next one appears at its spot. Default 3
 //   bundle-base   Folder URL of the kit bundles.                     Default bundles/ next to this file
 //
 // From the page's code (or the dev tools console), a broom can be brought to you: it's put 1.5 m in front of you at
@@ -121,7 +122,9 @@
     }
     const yaw = parseFloat(attr('yaw'));
     const limit = parseInt(attr('sync-limit'), 10);
-    return { vars, el, syncLimit: Number.isFinite(limit) && limit >= 0 ? limit : 10, labelText: attr('label-text'), position: parsePosition(attr('position')) || [0, 0.8, 2], yaw: Number.isFinite(yaw) ? yaw : 0 };
+    const delay = parseFloat(attr('respawn-delay'));
+    return { vars, el, syncLimit: Number.isFinite(limit) && limit >= 0 ? limit : 10,
+      respawnDelay: Number.isFinite(delay) && delay >= 0 ? delay : 3, labelText: attr('label-text'), position: parsePosition(attr('position')) || [0, 0.8, 2], yaw: Number.isFinite(yaw) ? yaw : 0 };
   };
 
   const send = async (key) => {
@@ -287,15 +290,22 @@
       // Out: the one waiting here if it's that one, or spawned (it moves to wherever its rider has it).
       for (const n of out) {
         if (place.out.has(n)) continue;
-        if (place.waiting && place.waiting.n === n) { place.out.set(n, place.waiting); place.waiting = null; }
-        else place.out.set(n, spawnRecord(place, `${key}~${idFor(key, n)}`, n));
+        if (place.waiting && place.waiting.n === n) {
+          place.out.set(n, place.waiting);
+          place.waiting = null;
+          // The next one waits a moment, so it isn't in the way while the rider gets settled and flies off.
+          place.nextAt = Date.now() + place.respawnDelay * 1000;
+        } else place.out.set(n, spawnRecord(place, `${key}~${idFor(key, n)}`, n));
       }
       // Waiting at the spot: shared while there's room, local (n 0) once sync-limit are out. They're swapped as the
       // room comes and goes, except a local one while it's out (you're riding it, or it's waiting to go home).
       const room = taken.size < place.syncLimit;
       if (place.waiting && place.waiting.n > 0 && !room) { drop(place.waiting); place.waiting = null; }
       if (place.waiting && place.waiting.n === 0 && room && !place.localOut) { drop(place.waiting); place.waiting = null; }
-      if (!place.waiting) {
+      const wait = (place.nextAt || 0) - Date.now();
+      if (!place.waiting && wait > 0) {
+        if (!place.timer) place.timer = setTimeout(() => { place.timer = null; refresh(); }, wait + 20);
+      } else if (!place.waiting) {
         let n = 0;
         if (room) for (n = 1; out.has(n); n++);
         place.waiting = spawnRecord(place, n ? `${key}~${idFor(key, n)}` : key, n);
